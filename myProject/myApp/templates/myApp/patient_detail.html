@@ -1,0 +1,533 @@
+{% extends 'myApp/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Карта пациента{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4>{{ patient.last_name }} {{ patient.first_name }} {{ patient.middle_name }}</h4>
+                            <small>ID пациента: {{ patient.id }} | Вес: {{ patient.weight_kg }} кг</small>
+                        </div>
+                        <div class="btn-group">
+                            <a href="{% url 'patient_detail' patient.id %}?date={{ prev_date|date:'Y-m-d' }}" 
+                               class="btn btn-sm btn-light">&laquo; Пред.</a>
+                            <span class="btn btn-sm btn-light disabled">{{ selected_date|date:"d.m.Y" }}</span>
+                            <a href="{% url 'patient_detail' patient.id %}?date={{ next_date|date:'Y-m-d' }}" 
+                               class="btn btn-sm btn-light">След. &raquo;</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Статистика за день -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5>Приемы пищи</h5>
+                                    <h3>{{ meals|length }}</h3>
+                                    <small>Всего углеводов: {{ meals|sum_attribute:'carbs_weight'|default:0 }} г</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5>Инъекции</h5>
+                                    <h3>{{ injections|length }}</h3>
+                                    <small>Всего инсулина: {{ injections|sum_attribute:'volume'|default:0 }} ЕД</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5>Выбор дня</h5>
+                                    <select class="form-select" onchange="location.href='?date='+this.value">
+                                        <option value="">-- Выберите день --</option>
+                                        {% for d in available_dates %}
+                                        <option value="{{ d|date:'Y-m-d' }}" {% if d == selected_date %}selected{% endif %}>
+                                            {{ d|date:"d.m.Y" }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопки действий -->
+                    <div class="btn-group mb-4" role="group">
+                        <a href="{% url 'edit_patient_parameters' patient.id %}" class="btn btn-outline-primary">
+                            Параметры модели
+                        </a>
+                        <a href="{% url 'add_food_intake' patient.id %}?date={{ selected_date|date:'Y-m-d' }}" 
+                           class="btn btn-outline-success">
+                            Добавить прием пищи
+                        </a>
+                        <a href="{% url 'add_insulin_injection' patient.id %}?date={{ selected_date|date:'Y-m-d' }}" 
+                           class="btn btn-outline-info">
+                            Добавить инсулин
+                        </a>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#runModal">
+                            Запустить расчет
+                        </button>
+                    </div>
+                    
+                    <h5>Приемы пищи за {{ selected_date|date:"d.m.Y" }}</h5>
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr><th>Время</th><th>Длительность</th><th>Углеводы (г)</th><th>Действия</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for meal in meals %}
+                            <tr>
+                                <td>{{ meal.start_time|minutes_to_time }} ({{ meal.start_time }} мин)</td>
+                                <td>{{ meal.duration }} мин</td>
+                                <td>{{ meal.carbs_weight }}</td>
+                                <td>
+                                    <a href="{% url 'edit_food_intake' patient.id meal.id %}" class="btn btn-sm btn-warning">Изменить</a>
+                                    <a href="{% url 'delete_food_intake' patient.id meal.id %}" 
+                                       class="btn btn-sm btn-danger" 
+                                       onclick="return confirm('Удалить прием пищи?')">Удалить</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-muted text-center">Нет данных за этот день</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    <h5 class="mt-4">Инъекции инсулина за {{ selected_date|date:"d.m.Y" }}</h5>
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr><th>Время</th><th>Длительность</th><th>Доза (ЕД)</th><th>Действия</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for inj in injections %}
+                            <tr>
+                                <td>{{ inj.start_time|minutes_to_time }} ({{ inj.start_time }} мин)</td>
+                                <td>{{ inj.duration }} мин</td>
+                                <td>{{ inj.volume }}</td>
+                                <td>
+                                    <a href="{% url 'edit_insulin_injection' patient.id inj.id %}" class="btn btn-sm btn-warning">Изменить</a>
+                                    <a href="{% url 'delete_insulin_injection' patient.id inj.id %}" 
+                                       class="btn btn-sm btn-danger"
+                                       onclick="return confirm('Удалить инъекцию?')">Удалить</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-muted text-center">Нет данных за этот день</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    <h5 class="mt-4">Результаты расчетов</h5>
+                    <div id="results">
+                        {% for calc in calculations %}
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <strong>{{ calc.calculation_time|date:"d.m.Y H:i:s" }}</strong>
+                                <span class="float-end">
+                                    Глюкоза: {{ calc.glucose_forecast }} ммоль/л
+                                    <button class="btn btn-sm btn-primary" onclick="showResult('{{ calc.id }}')">
+                                        Показать графики
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">Расчеты не выполнялись</p>
+                        {% endfor %}
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно запуска расчета -->
+<div class="modal fade" id="runModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Запуск расчета</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="calcForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label>Период расчета</label>
+                        <div class="row">
+                            <div class="col">
+                                <label>Начало</label>
+                                <input type="time" class="form-control" name="start_time" value="07:00">
+                            </div>
+                            <div class="col">
+                                <label>Конец</label>
+                                <input type="time" class="form-control" name="end_time" value="23:59">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Шаг расчета (минуты)</label>
+                        <input type="number" class="form-control" name="time_step" value="0.1" min="0.1" max="10" step="0.1">
+                        <small class="form-text text-muted">Рекомендуемый шаг: 0.1 минуты</small>
+                    </div>
+                    
+                    <!-- Передаем выбранную дату -->
+                    <input type="hidden" name="selected_date" value="{{ selected_date|date:'Y-m-d' }}">
+                    
+                    <div class="alert alert-info">
+                        Будет рассчитан прогноз уровня глюкозы за {{ selected_date|date:"d.m.Y" }} на основе:
+                        <ul>
+                            <li>{{ meals|length }} приемов пищи</li>
+                            <li>{{ injections|length }} инъекций инсулина</li>
+                            <li>Индивидуальных параметров пациента</li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" onclick="runCalculation()">Запустить расчет</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно результатов - РАСШИРЕННОЕ -->
+<div class="modal fade" id="resultModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-fullscreen-xl-down">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Результаты моделирования Ховорки</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+                <!-- Статистика -->
+                <div id="statsInfo" class="row mb-3"></div>
+                
+                <!-- Основные графики (существующие) -->
+                <div class="card mb-3">
+                    <div class="card-header">Концентрация глюкозы в крови (G, mmol/L)</div>
+                    <div class="card-body"><canvas id="glucoseChart" width="400" height="200"></canvas></div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-header">Концентрация инсулина в плазме (I, mU/L)</div>
+                    <div class="card-body"><canvas id="insulinChart" width="400" height="200"></canvas></div>
+                </div>
+                
+                <!-- НОВЫЕ ГРАФИКИ: Глюкоза в желудке и кишечнике -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">Глюкоза в желудке (D1, mmol)</div>
+                            <div class="card-body"><canvas id="d1Chart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">Глюкоза в кишечнике (D2, mmol)</div>
+                            <div class="card-body"><canvas id="d2Chart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- НОВЫЕ ГРАФИКИ: Абсорбция и инсулин в депо -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">Абсорбция глюкозы (UG, mmol/min)</div>
+                            <div class="card-body"><canvas id="ugChart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">Инсулин в тканях (S1, mU)</div>
+                            <div class="card-body"><canvas id="s1Chart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">Инсулин в крови (S2, mU)</div>
+                            <div class="card-body"><canvas id="s2Chart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">Скорость введения инсулина (u(t), mU/min)</div>
+                            <div class="card-body"><canvas id="insulinRateChart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Вставьте после графика "Скорость введения инсулина" -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">Количество глюкозы в крови (Q1, mmol)</div>
+                            <div class="card-body"><canvas id="q1Chart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">Количество глюкозы в тканях (Q2, mmol)</div>
+                            <div class="card-body"><canvas id="q2Chart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">Скорость приема пищи v(t), г/мин</div>
+                            <div class="card-body"><canvas id="vtChart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">Скорость ввода углеводов D(t), ммоль/мин</div>
+                            <div class="card-body"><canvas id="dtChart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- НОВЫЕ ГРАФИКИ: Действие инсулина x1, x2, x3 -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-header">Действие x1 (транспорт глюкозы)</div>
+                            <div class="card-body"><canvas id="x1Chart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-header">Действие x2 (утилизация глюкозы)</div>
+                            <div class="card-body"><canvas id="x2Chart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-header">Действие x3 (продукция глюкозы)</div>
+                            <div class="card-body"><canvas id="x3Chart" width="400" height="150"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Дополнительная информация -->
+                <div id="resultInfo" class="mt-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let currentChart = null;
+let insulinChart = null;
+let charts = {}; // Для хранения всех графиков
+
+async function runCalculation() {
+    const formData = new FormData(document.getElementById('calcForm'));
+    
+    // Проверяем, что есть данные за выбранную дату
+    const mealsCount = parseInt('{{ meals|length }}');
+    const injectionsCount = parseInt('{{ injections|length }}');
+    
+    if (mealsCount === 0 && injectionsCount === 0) {
+        alert('Нет данных для расчета за выбранный день. Добавьте приемы пищи или инъекции инсулина.');
+        return;
+    }
+    
+    const response = await fetch("{% url 'run_calculation' patient.id %}", {
+        method: 'POST',
+        body: formData,
+        headers: {'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value}
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+        alert('Расчет выполнен! Результат сохранен.');
+        location.reload();
+    } else {
+        alert('Ошибка: ' + data.error);
+    }
+}
+
+// Функция создания графика
+function createChart(id, label, dataArray, color, yLabel = '', minY = null, maxY = null) {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    
+    if (charts[id]) charts[id].destroy();
+    
+    const ctx = canvas.getContext('2d');
+    const options = { 
+        responsive: true, 
+        maintainAspectRatio: true,
+        plugins: { legend: { position: 'top' } }
+    };
+    
+    if (minY !== null || maxY !== null) {
+        options.scales = { y: {} };
+        if (minY !== null) options.scales.y.min = minY;
+        if (maxY !== null) options.scales.y.max = maxY;
+    }
+    
+    charts[id] = new Chart(ctx, {
+        type: 'line',
+        data: { 
+            labels: [], 
+            datasets: [{ 
+                label: label, 
+                data: dataArray, 
+                borderColor: color, 
+                tension: 0.1, 
+                fill: false, 
+                pointRadius: 0 
+            }]
+        },
+        options: options
+    });
+    return charts[id];
+}
+
+async function showResult(calcId) {
+    const response = await fetch(`/api/calculation/${calcId}/`);
+    const data = await response.json();
+    
+    const timeHours = data.times.map(t => (t / 60).toFixed(1));
+    
+    // Статистика
+    const minGlucose = Math.min(...data.glucose);
+    const maxGlucose = Math.max(...data.glucose);
+    const avgGlucose = (data.glucose.reduce((a,b) => a+b, 0) / data.glucose.length).toFixed(2);
+    const minInsulin = Math.min(...data.insulin);
+    const maxInsulin = Math.max(...data.insulin);
+    
+    document.getElementById('statsInfo').innerHTML = `
+        <div class="col-md-3">
+            <div class="card ${minGlucose < 3.5 ? 'border-danger' : (maxGlucose > 10 ? 'border-warning' : 'border-success')}">
+                <div class="card-body text-center">
+                    <h6>Глюкоза (ммоль/л)</h6>
+                    <p>Мин: ${minGlucose.toFixed(2)}<br>Макс: ${maxGlucose.toFixed(2)}<br>Сред: ${avgGlucose}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6>Инсулин (mU/L)</h6>
+                    <p>Мин: ${minInsulin.toFixed(2)}<br>Макс: ${maxInsulin.toFixed(2)}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6>D1 макс / D2 макс</h6>
+                    <p>D1: ${Math.max(...(data.D1 || [0])).toFixed(2)}<br>D2: ${Math.max(...(data.D2 || [0])).toFixed(2)}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6>Статус</h6>
+                    <p>${maxGlucose > 10 ? ' Гипергликемия' : (minGlucose < 3.5 ? ' Гипогликемия' : ' Норма')}</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Существующие графики
+    const ctx = document.getElementById('glucoseChart').getContext('2d');
+    if (currentChart) currentChart.destroy();
+    currentChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: timeHours,
+            datasets: [
+                { label: 'Глюкоза (ммоль/л)', data: data.glucose, borderColor: 'red', tension: 0.1, fill: true, pointRadius: 0 },
+                { label: 'Норма (4.0)', data: Array(timeHours.length).fill(4.0), borderColor: 'green', borderDash: [5, 5], pointRadius: 0 },
+                { label: 'Верхняя граница (10.0)', data: Array(timeHours.length).fill(10.0), borderColor: 'orange', borderDash: [5, 5], pointRadius: 0 }
+            ]
+        },
+        options: { responsive: true, scales: { y: { min: 0, max: 15 } } }
+    });
+    
+    const ctxInsulin = document.getElementById('insulinChart').getContext('2d');
+    if (insulinChart) insulinChart.destroy();
+    insulinChart = new Chart(ctxInsulin, {
+        type: 'line',
+        data: { labels: timeHours, datasets: [{ label: 'Инсулин (mU/L)', data: data.insulin, borderColor: 'blue', tension: 0.1, fill: false, pointRadius: 0 }] },
+        options: { responsive: true }
+    });
+    
+    const newCharts = [
+        { id: 'd1Chart', label: 'D1 (ммоль)', data: data.D1 || [], color: 'green' },
+        { id: 'd2Chart', label: 'D2 (ммоль)', data: data.D2 || [], color: 'orange' },
+        { id: 'ugChart', label: 'UG (ммоль/мин)', data: data.UG || [], color: 'purple' },
+        { id: 's1Chart', label: 'S1 (mU)', data: data.S1 || [], color: 'brown' },
+        { id: 's2Chart', label: 'S2 (mU)', data: data.S2 || [], color: 'magenta' },
+        { id: 'insulinRateChart', label: 'u(t) (mU/мин)', data: data.insulin_rate || [], color: 'darkblue' },
+        { id: 'x1Chart', label: 'x1', data: data.x1 || [], color: 'teal' },
+        { id: 'x2Chart', label: 'x2', data: data.x2 || [], color: 'coral' },
+        { id: 'x3Chart', label: 'x3', data: data.x3 || [], color: 'navy' },
+        { id: 'q1Chart', label: 'Q1 (ммоль)', data: data.Q1 || [], color: 'olive' },
+        { id: 'q2Chart', label: 'Q2 (ммоль)', data: data.Q2 || [], color: 'peru' },
+        { id: 'vtChart', label: 'v(t) (г/мин)', data: data.food_rate || [], color: 'darkgreen' },
+        { id: 'dtChart', label: 'D(t) (ммоль/мин)', data: data.D_t || [], color: 'darkred' },
+    ];
+    
+    newCharts.forEach(chartInfo => {
+        const canvas = document.getElementById(chartInfo.id);
+        if (canvas && chartInfo.data && chartInfo.data.length > 0) {
+            if (charts[chartInfo.id]) charts[chartInfo.id].destroy();
+            const ctx = canvas.getContext('2d');
+            charts[chartInfo.id] = new Chart(ctx, {
+                type: 'line',
+                data: { 
+                    labels: timeHours, 
+                    datasets: [{ 
+                        label: chartInfo.label, 
+                        data: chartInfo.data, 
+                        borderColor: chartInfo.color, 
+                        tension: 0.1, 
+                        fill: false, 
+                        pointRadius: 0 
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+    });
+    
+    document.getElementById('resultInfo').innerHTML = `
+        <div class="alert alert-info">
+            <strong>Прогноз:</strong> ${data.glucose_forecast} ммоль/л<br>
+            Норма: 4.0-7.0 ммоль/л (натощак), &lt; 10.0 ммоль/л (после еды)
+        </div>
+    `;
+    
+    new bootstrap.Modal(document.getElementById('resultModal')).show();
+}
+</script>
+{% endblock %}

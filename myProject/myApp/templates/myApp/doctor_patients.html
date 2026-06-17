@@ -1,0 +1,52 @@
+{% extends 'myApp/base.html' %}
+
+{% block title %}Мои пациенты{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Мои пациенты</h4>
+        </div>
+        <div class="card-body">
+            {% if patients %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Пациент</th>
+                            <th>Возраст</th>
+                            <th>Вес (кг)</th>
+                            <th>Приемов пищи</th>
+                            <th>Инъекций</th>
+                            <th>Расчетов</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient_data in patients %}
+                        <tr>
+                            <td>{{ patient_data.patient.id }}</td>
+                            <td>{{ patient_data.patient.last_name }} {{ patient_data.patient.first_name }} {{ patient_data.patient.middle_name }}</td>
+                            <td>{{ patient_data.age }} лет</td>
+                            <td>{{ patient_data.patient.weight_kg|default:"—" }}</td>
+                            <td>{{ patient_data.meals_count }}</td>
+                            <td>{{ patient_data.injections_count }}</td>
+                            <td>{{ patient_data.calculations_count }}</td>
+                            <td>
+                                <a href="{% url 'doctor_patient_detail' patient_data.patient.id %}" class="btn btn-sm btn-primary">Просмотр</a>
+                                <a href="{% url 'edit_patient_parameters' patient_data.patient.id %}" class="btn btn-sm btn-warning">Параметры</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">У вас пока нет пациентов</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'myApp/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Редактировать прием пищи{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h4> Редактировать прием пищи</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label>Дата</label>
+                    <input type="date" class="form-control" value="{{ item.record_date|date:'Y-m-d' }}" disabled>
+                </div>
+                <div class="mb-3">
+                            <label for="start_time" class="form-label">Время начала (ЧЧ:ММ или минуты)</label>
+                            <input type="text" class="form-control" id="start_time" name="start_time" 
+                                   min="0" max="1440" value="{{ item.start_time|minutes_to_time }}" required>
+                </div>
+                <div class="mb-3">
+                    <label>Длительность (минуты)</label>
+                    <input type="number" class="form-control" name="duration" value="{{ item.duration }}" required>
+                </div>
+                <div class="mb-3">
+                    <label>Углеводы (г)</label>
+                    <input type="number" step="0.1" class="form-control" name="carbs_weight" value="{{ item.carbs_weight }}" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                <a href="{% url 'patient_detail' patient.id %}?date={{ item.record_date|date:'Y-m-d' }}" class="btn btn-secondary">Отмена</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('start_time').addEventListener('change', function() {
+        let val = this.value;
+        if (val > 24 && val < 100) {
+            let hours = Math.floor(val / 100);
+            let minutes = val % 100;
+            if (hours < 24 && minutes < 60) {
+                this.value = hours * 60 + minutes;
+            }
+        }
+    });
+</script>
+{% endblock %}

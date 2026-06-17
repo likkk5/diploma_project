@@ -1,0 +1,277 @@
+<!-- myApp/templates/myApp/edit_parameters.html -->
+{% extends 'myApp/base.html' %}
+
+{% block title %}Параметры модели пациента{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Индивидуальные параметры модели</h4>
+                    <small>Пациент: {{ patient.last_name }} {{ patient.first_name }} {{ patient.middle_name }}</small>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-info">
+                            <strong>О параметрах:</strong> Если оставить поле пустым, будут использоваться значения по умолчанию.
+                        </div>
+                        
+                        <!-- Существующие поля -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.glucose_transfer_rate.id_for_label }}" class="form-label">
+                                    Скорость переноса глюкозы (k12)
+                                </label>
+                                {{ form.glucose_transfer_rate }}
+                                <small class="form-text text-muted">По умолчанию: 0.066 | Влияет на транспорт глюкозы</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.insulin_absorption_coefficient.id_for_label }}" class="form-label">
+                                    Абсорбция инсулина (kb1)
+                                </label>
+                                {{ form.insulin_absorption_coefficient }}
+                                <small class="form-text text-muted">По умолчанию: 0.000307 | Транспорт глюкозы</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.insulin_distribution_rate.id_for_label }}" class="form-label">
+                                    Распределение инсулина (kb2)
+                                </label>
+                                {{ form.insulin_distribution_rate }}
+                                <small class="form-text text-muted">По умолчанию: 0.0000492 | Утилизация глюкозы</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.insulin_effect_on_glucose_liver.id_for_label }}" class="form-label">
+                                    Эффект на печень (kb3)
+                                </label>
+                                {{ form.insulin_effect_on_glucose_liver }}
+                                <small class="form-text text-muted">По умолчанию: 0.0016 | Продукция глюкозы</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.liver_glucose_production_rate.id_for_label }}" class="form-label">
+                                    Продукция глюкозы печенью (EGP0)
+                                </label>
+                                {{ form.liver_glucose_production_rate }}
+                                <small class="form-text text-muted">По умолчанию: 0.079  | ммоль/мин/кг</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.glucose_consumption_rate.id_for_label }}" class="form-label">
+                                    Потребление глюкозы ЦНС (F01)
+                                </label>
+                                {{ form.glucose_consumption_rate }}
+                                <small class="form-text text-muted">По умолчанию: 0.089  | ммоль/мин/кг</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.meal_absorption_time.id_for_label }}" class="form-label">
+                                    Время абсорбции пищи (tmax,G)
+                                </label>
+                                {{ form.meal_absorption_time }}
+                                <small class="form-text text-muted">По умолчанию: 40 минут | Как быстро пища всасывается</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.insulin_absorption_time.id_for_label }}" class="form-label">
+                                    Время абсорбции инсулина (tmax,I)
+                                </label>
+                                {{ form.insulin_absorption_time }}
+                                <small class="form-text text-muted">По умолчанию: 55 минут | Пик действия инсулина</small>
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.glucose_deactivation_distribution.id_for_label }}" class="form-label">
+                                    Деактивация распределения глюкозы (ka1)
+                                </label>
+                                {{ form.glucose_deactivation_distribution }}
+                                <small class="form-text text-muted">По умолчанию: 0.006 | Влияет на распределение глюкозы</small>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.glucose_deactivation_utilization.id_for_label }}" class="form-label">
+                                    Деактивация утилизации глюкозы (ka2)
+                                </label>
+                                {{ form.glucose_deactivation_utilization }}
+                                <small class="form-text text-muted">По умолчанию: 0.06 | Влияет на утилизацию глюкозы</small>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.glucose_deactivation_liver.id_for_label }}" class="form-label">
+                                    Деактивация продукции печени (ka3)
+                                </label>
+                                {{ form.glucose_deactivation_liver }}
+                                <small class="form-text text-muted">По умолчанию: 0.03 | Влияет на продукцию глюкозы</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.glucose_distribution_volume.id_for_label }}" class="form-label">
+                                    Объем распределения глюкозы (VG)
+                                </label>
+                                {{ form.glucose_distribution_volume }}
+                                <small class="form-text text-muted">По умолчанию: 0.16 | л/кг </small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.insulin_distribution_volume.id_for_label }}" class="form-label">
+                                    Объем распределения инсулина (VI)
+                                </label>
+                                {{ form.insulin_distribution_volume }}
+                                <small class="form-text text-muted">По умолчанию: 0.12  | л/кг </small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.bioavailability.id_for_label }}" class="form-label">
+                                    Биодоступность пищи (AG)
+                                </label>
+                                {{ form.bioavailability }}
+                                <small class="form-text text-muted">По умолчанию: 0.8</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.insulin_elimination_rate.id_for_label }}" class="form-label">
+                                    Скорость выведения инсулина (ke)
+                                </label>
+                                {{ form.insulin_elimination_rate }}
+                                <small class="form-text text-muted">По умолчанию: 0.138 | 1/мин</small>
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.initial_D1.id_for_label }}" class="form-label">
+                                    Глюкоза в желудке (D1, ммоль)
+                                </label>
+                                {{ form.initial_D1 }}
+                                <small class="form-text text-muted">По умолчанию: 0 | Количество глюкозы в желудке</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.initial_D2.id_for_label }}" class="form-label">
+                                    Глюкоза в кишечнике (D2, ммоль)
+                                </label>
+                                {{ form.initial_D2 }}
+                                <small class="form-text text-muted">По умолчанию: 0 | Количество глюкозы в кишечнике</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.initial_Q1.id_for_label }}" class="form-label">
+                                    Глюкоза в крови (Q1, ммоль)
+                                </label>
+                                {{ form.initial_Q1 }}
+                                <small class="form-text text-muted">По умолчанию: 65 | Общее количество глюкозы в крови</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.initial_Q2.id_for_label }}" class="form-label">
+                                    Глюкоза в тканях (Q2, ммоль)
+                                </label>
+                                {{ form.initial_Q2 }}
+                                <small class="form-text text-muted">По умолчанию: 10 | Количество глюкозы в периферических тканях</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.initial_S1.id_for_label }}" class="form-label">
+                                    Инсулин в тканях (S1, mU)
+                                </label>
+                                {{ form.initial_S1 }}
+                                <small class="form-text text-muted">По умолчанию: 0 | Инсулин в подкожном депо</small>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.initial_S2.id_for_label }}" class="form-label">
+                                    Инсулин в крови (S2, mU)
+                                </label>
+                                {{ form.initial_S2 }}
+                                <small class="form-text text-muted">По умолчанию: 0 | Инсулин в плазме крови</small>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.initial_I.id_for_label }}" class="form-label">
+                                    Инсулин в крови (I, mU/L)
+                                </label>
+                                {{ form.initial_I }}
+                                <small class="form-text text-muted">По умолчанию: 0 | Концентрация инсулина в плазме</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.initial_x1.id_for_label }}" class="form-label">
+                                    Начальное x1
+                                </label>
+                                {{ form.initial_x1 }}
+                                <small class="form-text text-muted">По умолчанию: 0.0634 | Базальное действие на транспорт глюкозы</small>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.initial_x2.id_for_label }}" class="form-label">
+                                    Начальное x2
+                                </label>
+                                {{ form.initial_x2 }}
+                                <small class="form-text text-muted">По умолчанию: 0.0005 | Базальное действие на утилизацию глюкозы</small>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.initial_x3.id_for_label }}" class="form-label">
+                                    Начальное x3
+                                </label>
+                                {{ form.initial_x3 }}
+                                <small class="form-text text-muted">По умолчанию: 0.3138 | Базальное действие на продукцию печени</small>
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                            <a href="{% url 'patient_detail' patient.id %}" class="btn btn-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-primary">Сохранить параметры</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    input, select, textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+    input:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+    h6.text-secondary {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}

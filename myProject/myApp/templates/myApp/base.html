@@ -1,0 +1,111 @@
+<!-- myApp/templates/myApp/base.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Система прогнозирования глюкозы{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'myApp/css/style.css' %}">
+</head>
+<body>
+    <!-- Навигационное меню на Bootstrap -->
+    <nav class="navbar navbar-expand-lg" style="background-color: rgba(197, 224, 200, 0.95); padding: 5px 0; height: 60px;">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}" style="color: #2d6a4f; font-weight: bold; font-size: 24px;">
+                Система прогнозирования глюкозы
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'home' %}" style="font-size: 18px;">Главная</a>
+                        </li>
+                        
+                        {% if is_doctor %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'doctor_patients' %}" style="font-size: 18px;">Мои пациенты</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% if is_patient and patient_id %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'patient_detail' patient_id %}" style="font-size: 18px;">Мои данные</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'edit_patient_parameters' patient_id %}" style="font-size: 18px;">Параметры</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% if user.is_superuser %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" style="font-size: 18px;">
+                                    Администрирование
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/admin/">Панель администратора</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'manage_users' %}">Управление пользователями</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'manage_doctor_patients' %}">Назначение врачей</a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                        
+                        <!-- Отображение текущего пользователя -->
+                        <li class="nav-item">
+                            {% if is_patient and patient_id %}
+                                <a class="nav-link" href="{% url 'patient_profile' patient_id %}" style="color: #2d6a4f; font-weight: bold; font-size: 18px;">
+                                    <i class="bi bi-person-circle"></i> {{ user.username }}
+                                </a>
+                            {% else %}
+                                <span class="nav-link" style="color: #2d6a4f; font-weight: bold; font-size: 18px;">
+                                    <i class="bi bi-person-circle"></i> {{ user.username }}
+                                </span>
+                            {% endif %}
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}" style="font-size: 18px;">Выйти</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}" style="font-size: 18px;">Вход</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}" style="font-size: 18px;">Регистрация</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
+    </div>
+    
+    <div class="footer">
+        <p>© 2026 Система моделирования глюкозо-инсулинового взаимодействия для пациентов с сахарным диабетом первого типа.</p>
+        <p style="font-size: 12px; margin-top: 5px;">Для личного и медицинского использования</p>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!-- myApp/templates/myApp/add_insulin_injection.html -->
+{% extends 'myApp/base.html' %}
+
+{% block title %}Добавить инъекцию инсулина{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4>Добавить инъекцию инсулина</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="start_time" class="form-label">Время укола (ЧЧ:ММ или минуты)</label>
+                            <input type="text" class="form-control" id="start_time" name="start_time" 
+                                   min="0" max="1440" required>
+                            <small class="form-text text-muted">Введите время в формате ЧЧ:ММ или минутах (0-1440)</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="duration" class="form-label">Длительность введения (минуты)</label>
+                            <input type="number" class="form-control" id="duration" name="duration" 
+                                   min="1" max="10" value="2" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="volume" class="form-label">Доза инсулина</label>
+                            <input type="number" step="0.1" class="form-control" id="volume" 
+                                   name="volume" min="0" max="50" required
+                                   placeholder="например: 6 ЕД">
+                            <small class="form-text text-muted">Единицы инсулина (1 ЕД = 1000mU)</small>
+                        </div>
+                        
+                        <!-- <div class="alert alert-warning mt-3">
+                            <strong>Важно:</strong><br>
+                            • Короткий инсулин: начало через 15-30 мин, пик через 1-3 часа<br>
+                            • Длинный инсулин: действует 12-24 часа<br>
+                            • Тип инсулина учитывается через время абсорбции (tmax,I)
+                        </div> -->
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'patient_detail' patient.id %}" class="btn btn-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-info text-white">Добавить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

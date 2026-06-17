@@ -1,0 +1,73 @@
+<!-- myApp/templates/myApp/add_food_intake.html -->
+{% extends 'myApp/base.html' %}
+
+{% block title %}Добавить прием пищи{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4>Добавить прием пищи</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="start_time" class="form-label">Время начала (ЧЧ:ММ или минуты)</label>
+                            <input type="text" class="form-control" id="start_time" name="start_time" 
+                                   min="0" max="1440" required>
+                            <small class="form-text text-muted">
+                                Введите время в формате ЧЧ:ММ или минутах (0-1440)
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="duration" class="form-label">Длительность приема (минуты)</label>
+                            <input type="number" class="form-control" id="duration" name="duration" 
+                                   min="1" max="120" value="15" required>
+                            
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="carbs_weight" class="form-label">Количество углеводов (граммы)</label>
+                            <input type="number" step="1" class="form-control" id="carbs_weight" 
+                                   name="carbs_weight" min="0" max="500" required
+                                   placeholder="например: 50">
+                            <small class="form-text text-muted">Вес углеводов в граммах (1 ХЕ = ~12г углеводов)</small>
+                        </div>
+                        
+                        <div class="alert alert-secondary mt-3">
+                            <strong>Примеры:</strong><br>
+                            • Яблоко: ~15г углеводов<br>
+                            • Хлеб (1 кусок): ~20г<br>
+                            • Каша (200г): ~40г<br>
+                            • Обед (полный): ~60-80г
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'patient_detail' patient.id %}" class="btn btn-secondary">Отмена</a>
+                            <button type="submit" class="btn btn-success">Добавить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('start_time').addEventListener('change', function() {
+        let val = this.value;
+        if (val > 24 && val < 100) {
+            let hours = Math.floor(val / 100);
+            let minutes = val % 100;
+            if (hours < 24 && minutes < 60) {
+                this.value = hours * 60 + minutes;
+            }
+        }
+    });
+</script>
+{% endblock %}

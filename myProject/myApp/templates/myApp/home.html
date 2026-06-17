@@ -1,0 +1,106 @@
+<!-- myApp/templates/myApp/home.html -->
+{% extends 'myApp/base.html' %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+<div class="welcome-card">
+    <h1>Добро пожаловать в систему прогнозирования глюкозы!</h1>
+    <p>Современная система для моделирования и прогнозирования уровня глюкозы у пациентов с диабетом первого типа.</p>
+    
+    {% if user.is_authenticated %}
+        <div class="user-info">
+            <h3>Здравствуйте, {{ user.get_full_name|default:user.username }}!</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Ваша роль</div>
+                    <div class="info-value">
+                        {% if is_doctor %}Врач
+                        {% elif is_patient %}Пациент
+                        {% elif user.is_superuser %}Администратор
+                        {% else %}Пользователь{% endif %}
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Имя пользователя</div>
+                    <div class="info-value">{{ user.username }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">{{ user.email }}</div>
+                </div>
+                {% if is_patient and patient_weight %}
+                <div class="info-item">
+                    <div class="info-label">Вес</div>
+                    <div class="info-value">{{ patient_weight }} кг</div>
+                </div>
+                {% endif %}
+                {% if is_doctor and doctor_specialization %}
+                <div class="info-item">
+                    <div class="info-label">Специализация</div>
+                    <div class="info-value">{{ doctor_specialization }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            {% if is_patient %}
+                <div class="stat-card">
+                    <div class="stat-number">{{ meals_count|default:"0" }}</div>
+                    <div class="stat-label">Приемов пищи</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ injections_count|default:"0" }}</div>
+                    <div class="stat-label">Инъекций инсулина</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ calculations_count|default:"0" }}</div>
+                    <div class="stat-label">Выполненных расчетов</div>
+                </div>
+            {% elif is_doctor %}
+                <div class="stat-card">
+                    <div class="stat-number">{{ patients_count|default:"0" }}</div>
+                    <div class="stat-label">Моих пациентов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_calculations|default:"0" }}</div>
+                    <div class="stat-label">Всего расчетов</div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="buttons">
+            {% if is_patient and patient_id %}
+                <a href="{% url 'patient_detail' patient_id %}" class="btn btn-primary">Моя страница</a>
+                <a href="{% url 'add_food_intake' patient_id %}" class="btn btn-success">Добавить прием пищи</a>
+                <a href="{% url 'add_insulin_injection' patient_id %}" class="btn btn-info">Добавить инсулин</a>
+                <a href="{% url 'edit_patient_parameters' patient_id %}" class="btn btn-warning">Параметры модели</a>
+            {% elif is_doctor %}
+                <a href="{% url 'doctor_patients' %}" class="btn btn-primary">Мои пациенты</a>
+            {% elif user.is_superuser %}
+                <a href="/admin/" class="btn btn-primary">Панель администратора</a>
+                <a href="{% url 'manage_users' %}" class="btn btn-warning">Управление пользователями</a>
+                <a href="{% url 'manage_doctor_patients' %}" class="btn btn-info">Назначение врачей</a>
+            {% endif %}
+        </div>
+        
+    {% else %}
+        <div class="buttons">
+            <a href="{% url 'login' %}" class="btn btn-primary">Войти в систему</a>
+            <a href="{% url 'register' %}" class="btn btn-success">Зарегистрироваться</a>
+        </div>
+        
+        <div style="margin-top: 40px; padding: 20px; background: #f7fafc; border-radius: 10px;">
+            <h3>О системе</h3>
+            <p>Система использует математическую модель Ховорка для прогнозирования уровня глюкозы на основе:</p>
+            <ul style="margin-top: 10px; margin-left: 20px;">
+                <li>Данных о приеме углеводной пищи</li>
+                <li>Инъекций инсулина</li>
+                <li>Индивидуальных параметров пациента</li>
+                <li>Истории измерений уровня глюкозы</li>
+            </ul>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends 'myApp/base.html' %}
+
+{% block title %}Профиль пациента{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <!-- Карточка профиля -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Профиль пациента</h4>
+                        <a href="{% url 'patient_detail' patient.id %}" class="btn btn-sm btn-light back-button">
+                            ← Вернуться к карте пациента
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Информация о пациенте (только для просмотра) -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="text-muted small">Фамилия</label>
+                                <p class="fw-bold">{{ patient.last_name }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="text-muted small">Имя</label>
+                                <p class="fw-bold">{{ patient.first_name }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="text-muted small">Отчество</label>
+                                <p class="fw-bold">{{ patient.middle_name|default:"—" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="text-muted small">ID пациента</label>
+                                <p class="fw-bold">{{ patient.id }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="text-muted small">Дата рождения</label>
+                                <p class="fw-bold">{{ patient.birth_date|date:"d.m.Y" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="text-muted small">Пол</label>
+                                <p class="fw-bold">
+                                    {% if patient.gender == 'M' %}Мужской
+                                    {% elif patient.gender == 'F' %}Женский
+                                    {% else %}—{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="text-muted small">Телефон</label>
+                                <p class="fw-bold">{{ patient.phone|default:"—" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="text-muted small">Email</label>
+                                <p class="fw-bold">{{ patient.email|default:"—" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Форма редактирования веса -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="mb-3">Редактирование веса</h5>
+                            
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            
+                            <form method="post" class="row g-3">
+                                {% csrf_token %}
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.weight_kg.id_for_label }}" class="form-label">
+                                        {{ form.weight_kg.label }}
+                                    </label>
+                                    {{ form.weight_kg }}
+                                    {% if form.weight_kg.errors %}
+                                        <div class="alert alert-danger mt-2">
+                                            {% for error in form.weight_kg.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Текущий вес: <strong>{{ patient.weight_kg|default:"не указан" }} кг</strong>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary save-button">
+                                        <i class="bi bi-save"></i> Сохранить изменения веса
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- 
+                    {% if user_role == 'doctor' %}
+                    <div class="mt-3">
+                        <button class="btn btn-link btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#weightHistory">
+                            Показать историю изменений веса
+                        </button>
+                        <div class="collapse" id="weightHistory">
+                            <div class="card card-body">
+                                <p class="text-muted small mb-0">
+                                    Здесь будет отображаться история изменений веса пациента.
+                                    (Функция в разработке)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %} -->
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+</div>
+
+<style>
+.info-group {
+    margin-bottom: 15px;
+}
+.info-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+.info-group p {
+    margin-bottom: 0;
+    font-size: 1.1rem;
+}
+
+/* Стиль для кнопки "Вернуться к карте пациента" */
+.back-button {
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background-color: #6c757d !important;  
+    color: white !important;               
+    border-color: #6c757d !important;
+    transform: translateX(-3px);
+}
+/* Стиль для кнопки сохранения */
+.save-button {
+    transition: all 0.3s ease;
+}
+
+.save-button:hover {
+    background-color: #52b788 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

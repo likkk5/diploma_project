@@ -1,0 +1,75 @@
+{% extends 'myApp/base.html' %}
+
+{% block title %}Управление пользователями{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h4>Управление пользователями</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя пользователя</th>
+                        <th>Email</th>
+                        <th>Текущая роль</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.patient_profile %}
+                                Пациент
+                            {% elif user.doctor_profile %}
+                                Врач
+                            {% else %}
+                                Нет роли
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#roleModal{{ user.id }}">
+                                Сменить роль
+                            </button>
+                        </td>
+                    </tr>
+                    
+                    <!-- Модальное окно смены роли -->
+                    <div class="modal fade" id="roleModal{{ user.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="post" action="{% url 'change_user_role' user.id %}">
+                                    {% csrf_token %}
+                                    <div class="modal-header">
+                                        <h5>Смена роли для {{ user.username }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <select name="role" class="form-select">
+                                            <option value="">-- Выберите роль --</option>
+                                            <option value="patient">Пациент</option>
+                                            <option value="doctor">Врач</option>
+                                        </select>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

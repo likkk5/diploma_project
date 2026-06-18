@@ -11,6 +11,12 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import dj_database_url
+import os
+from dotenv import load_dotenv
+
+# Загружаем переменные из .env
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +31,7 @@ SECRET_KEY = 'django-insecure-!3_852&*9)cjq_!@a##jw=2)grg@ijj1pegx0ut!8*8nbf1cf@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1', '.koyeb.app']
 
 
 # Application definition
@@ -75,17 +81,23 @@ WSGI_APPLICATION = 'myProject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'diabetes_mellitus',
+#         'USER': 'postgres',          
+#         'PASSWORD': '1111',            
+#         'HOST': 'localhost',                 
+#         'PORT': '5432',    
+#     }
+# }
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'diabetes_mellitus',
-        'USER': 'postgres',          
-        'PASSWORD': '1111',            
-        'HOST': 'localhost',                 
-        'PORT': '5432',    
-    }
+    'default': dj_database_url.config(
+        default='postgresql://neondb_owner:npg_qgfzo2rUJSw4@ep-twilight-mode-ath34qry-pooler.c-9.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+        conn_max_age=600,
+        conn_health_checks=True
+    )
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

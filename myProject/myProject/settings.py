@@ -93,7 +93,7 @@ WSGI_APPLICATION = 'myProject.wsgi.application'
 # }
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://neondb_owner:npg_qgfzo2rUJSw4@ep-twilight-mode-ath34qry-pooler.c-9.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+        # default='postgresql://postgres:1111@localhost:5432/diabetes_mellitus',
         conn_max_age=600,
         conn_health_checks=True
     )

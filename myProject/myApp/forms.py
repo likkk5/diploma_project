@@ -4,12 +4,12 @@ from .models import Patient, PatientParameters
 
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=100, label='Логин')
-    password = forms.CharField(widget=forms.PasswordInput, label='Пароль')
+    password = forms.CharField(widget=forms.PasswordInput, label='Имя пользователя')
 
 
 class RegistrationForm(forms.Form):
     # БЕЗ поля role - автоматически будет patient
-    username = forms.CharField(max_length=100, label='Логин')
+    username = forms.CharField(max_length=100, label='Имя пользвателя')
     email = forms.EmailField(max_length=150, label='Email')
     password = forms.CharField(widget=forms.PasswordInput, label='Пароль')
     password_confirm = forms.CharField(widget=forms.PasswordInput, label='Подтверждение пароля')

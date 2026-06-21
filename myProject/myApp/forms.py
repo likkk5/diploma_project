@@ -3,8 +3,8 @@ from django.contrib.auth.models import User
 from .models import Patient, PatientParameters
 
 class LoginForm(forms.Form):
-    username = forms.CharField(max_length=100, label='Логин')
-    password = forms.CharField(widget=forms.PasswordInput, label='Имя пользователя')
+    username = forms.CharField(max_length=100, label='Имя пользвателя')
+    password = forms.CharField(widget=forms.PasswordInput, label='Пароль')
 
 
 class RegistrationForm(forms.Form):
